@@ -1,0 +1,88 @@
+{% extends 'food_app/base.html' %}
+{% block title %}Sign In — CraveWorld{% endblock %}
+
+{% block extra_head %}
+<style>
+  .auth-page {
+    min-height: calc(100vh - 64px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 2rem 1rem;
+  }
+  .auth-wrap { width: 100%; max-width: 440px; }
+
+  .auth-logo { text-align: center; margin-bottom: 2.5rem; }
+  .auth-logo h1 {
+    font-family: var(--font-head);
+    font-size: 3rem; font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+  .auth-logo p { color: var(--text-muted); margin-top: 0.5rem; font-size: 0.9rem; }
+
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2.5rem;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    animation: floatIn 0.4s ease;
+  }
+  @keyframes floatIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .auth-card h2 { font-family: var(--font-head); font-size: 1.6rem; margin-bottom: 0.25rem; }
+  .auth-card .sub { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; }
+
+  .btn-submit {
+    width: 100%; padding: 0.9rem; font-size: 1rem;
+    border-radius: 10px; justify-content: center; margin-top: 0.5rem;
+  }
+  .auth-footer { text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.875rem; }
+  .auth-footer a { color: var(--accent); font-weight: 600; }
+  .auth-footer a:hover { text-decoration: underline; }
+
+  .decorative-dots {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image: radial-gradient(circle, rgba(245,166,35,0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none; z-index: -1;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="decorative-dots"></div>
+
+<div class="auth-page">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <h1>CraveWorld</h1>
+      <p>Order delicious food, delivered fast 🍜</p>
+    </div>
+
+    <div class="auth-card">
+      <h2>Welcome back</h2>
+      <p class="sub">Sign in to your account to continue</p>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" name="username" class="form-input" placeholder="Enter your username" required autofocus />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" name="password" class="form-input" placeholder="Enter your password" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-submit">Sign In →</button>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="{% url 'register' %}">Create one</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

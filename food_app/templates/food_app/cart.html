@@ -1,0 +1,348 @@
+{% extends 'food_app/base.html' %}
+{% block title %}Cart — CraveWorld{% endblock %}
+
+{% block extra_head %}
+<style>
+  body {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+  }
+  .qty-input {
+  width: 50px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+
+  color: #f5a623;  /* 🔥 THIS changes number color */
+
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 0.2rem;
+}
+
+.qty-input:focus {
+  outline: none;
+  border-color: #f5a623;
+}
+
+  .page-title { color: #1a1a1a; }
+  .page-subtitle { color: #666; }
+
+  .cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    align-items: start;
+  }
+  @media (max-width: 820px) {
+    .cart-layout { grid-template-columns: 1fr; }
+  }
+
+  .cart-items-section h2 {
+    font-family: var(--font-head);
+    font-size: 1.6rem;
+    margin-bottom: 1.25rem;
+    color: #1a1a1a;
+  }
+
+  .cart-item {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 1.25rem;
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    animation: slideIn 0.3s ease both;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .cart-item:hover {
+    border-color: #f5a623;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+
+  .item-emoji {
+    width: 60px; height: 60px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; flex-shrink: 0;
+    border: 1px solid transparent;
+  }
+  .item-emoji.cat-starters { background: rgba(239,68,68,0.08);  border-color: rgba(239,68,68,0.2); }
+  .item-emoji.cat-mains    { background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.2); }
+  .item-emoji.cat-desserts { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.2); }
+  .item-emoji.cat-drinks   { background: rgba(34,197,94,0.08);  border-color: rgba(34,197,94,0.2); }
+
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #1a1a1a; }
+  .item-price-each { color: #888; font-size: 0.8rem; }
+
+  .item-actions { display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0; }
+  .item-subtotal { font-weight: 700; font-size: 1rem; color: #f5a623; min-width: 60px; text-align: right; }
+
+  .qty-form { display: flex; align-items: center; gap: 0.3rem; }
+
+  .summary-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    padding: 1.75rem;
+    position: sticky; top: 80px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .summary-card h3 {
+    font-family: var(--font-head);
+    font-size: 1.3rem;
+    margin-bottom: 1.25rem;
+    color: #1a1a1a;
+  }
+  .summary-row {
+    display: flex; justify-content: space-between;
+    font-size: 0.875rem; color: #888;
+    margin-bottom: 0.6rem;
+  }
+  .summary-row.total {
+    color: #1a1a1a; font-size: 1.1rem; font-weight: 700;
+    margin-top: 0.5rem; padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+  }
+  .summary-row.total .val { color: #f5a623; }
+  .summary-row .val { color: #1a1a1a; font-weight: 600; }
+
+  .payment-options { margin: 1.5rem 0; }
+  .radio-group { display: flex; flex-direction: column; gap: 0; }
+  .radio-option { position: relative; }
+  .radio-option input[type=radio] { position: absolute; opacity: 0; width: 0; height: 0; }
+  .radio-option input[type=radio]:checked ~ label {
+    border-color: #f5a623;
+    background: rgba(245,166,35,0.06);
+    color: #f5a623;
+  }
+  .pay-opt {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+    transition: border-color 0.2s, background 0.2s;
+    font-size: 0.875rem;
+    background: #fff;
+    color: #1a1a1a;
+  }
+  .pay-opt:hover { border-color: #f5a623; background: rgba(245,166,35,0.04); }
+  .pay-icon { font-size: 1.3rem; }
+  .pay-label { font-weight: 600; color: #1a1a1a; }
+  .pay-desc  { font-size: 0.75rem; color: #888; display: block; }
+
+  .checkout-btn {
+    width: 100%; padding: 0.95rem; font-size: 1rem;
+    border-radius: 10px; justify-content: center;
+    margin-top: 0.5rem;
+    background: #f5a623; color: #fff;
+    border: none; font-weight: 700;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .checkout-btn:hover {
+    background: #e09415;
+    box-shadow: 0 4px 15px rgba(245,166,35,0.3);
+    transform: translateY(-1px);
+  }
+
+  .empty-state {
+    text-align: center; padding: 4rem 2rem;
+    color: #888;
+  }
+  .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+  .empty-state h3 { color: #1a1a1a; font-size: 1.5rem; margin-bottom: 0.5rem; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #555;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-size: 0.875rem;
+  }
+  .btn-ghost:hover { border-color: #f5a623; color: #f5a623; }
+
+  .btn-danger {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    color: #dc2626;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .btn-danger:hover { background: #dc2626; color: #fff; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <h1 class="page-title">Your Cart</h1>
+  <p class="page-subtitle">
+    {% if cart_items %}{{ cart_items|length }} item{{ cart_items|length|pluralize }} in your cart{% else %}Your cart is empty{% endif %}
+  </p>
+
+  {% if cart_items %}
+    <div class="cart-layout">
+
+      <!-- LEFT: Cart Items -->
+      <div class="cart-items-section">
+        {% for item in cart_items %}
+          <div class="cart-item" data-index="{{ forloop.counter0 }}">
+
+            <div class="item-emoji
+              {% if item.food.category == 'starters' %}cat-starters
+              {% elif item.food.category == 'mains' %}cat-mains
+              {% elif item.food.category == 'desserts' %}cat-desserts
+              {% elif item.food.category == 'drinks' %}cat-drinks
+              {% endif %}">
+              {% if item.food.name == 'Paneer Tikka' %}🧀
+              {% elif item.food.name == 'Veg Spring Rolls' %}🥟
+              {% elif item.food.name == 'Chicken Lollipop' %}🍗
+              {% elif item.food.name == 'Hara Bhara Kabab' %}🥦
+              {% elif item.food.name == 'Butter Chicken' %}🍛
+              {% elif item.food.name == 'Dal Makhani' %}🫘
+              {% elif item.food.name == 'Palak Paneer' %}🥬
+              {% elif item.food.name == 'Chicken Biryani' %}🍚
+              {% elif item.food.name == 'Veg Fried Rice' %}🥡
+              {% elif item.food.name == 'Mutton Rogan Josh' %}🥩
+              {% elif item.food.name == 'Masala Dosa' %}🫓
+              {% elif item.food.name == 'Gulab Jamun' %}🍮
+              {% elif item.food.name == 'Chocolate Lava Cake' %}🎂
+              {% elif item.food.name == 'Mango Kulfi' %}🍦
+              {% elif item.food.name == 'Rasgulla' %}🍡
+              {% elif item.food.name == 'Mango Lassi' %}🥭
+              {% elif item.food.name == 'Masala Chai' %}☕
+              {% elif item.food.name == 'Fresh Lime Soda' %}🍋
+              {% elif item.food.name == 'Cold Coffee' %}🧋
+              {% else %}🍽️{% endif %}
+            </div>
+
+            <div class="item-info">
+              <div class="item-name">{{ item.food.name }}</div>
+              <div class="item-price-each">₹{{ item.food.price }} each</div>
+            </div>
+
+            <div class="item-actions">
+              <form method="post" action="{% url 'update_cart' item.id %}" class="qty-form">
+                {% csrf_token %}
+                <div class="qty-control">
+                  <button type="button" class="qty-btn" onclick="changeQty(this, -1)">−</button>
+                  <input type="number" name="quantity" class="qty-input" value="{{ item.quantity }}" min="0" max="99" id="qty-{{ item.id }}" />
+                  <button type="button" class="qty-btn" onclick="changeQty(this, 1)">+</button>
+                </div>
+                <button type="submit" class="btn btn-ghost btn-sm" style="margin-left:0.3rem;">Update</button>
+              </form>
+
+              <div class="item-subtotal">₹{{ item.subtotal }}</div>
+
+              <form method="post" action="{% url 'remove_from_cart' item.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger btn-sm" title="Remove item">✕</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+
+        <div style="margin-top:1rem;">
+          <a href="{% url 'menu' %}" class="btn btn-ghost">← Continue Shopping</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: Order Summary -->
+      <div>
+        <div class="summary-card">
+          <h3>Order Summary</h3>
+
+          {% for item in cart_items %}
+            <div class="summary-row">
+              <span>{{ item.food.name }} × {{ item.quantity }}</span>
+              <span class="val">₹{{ item.subtotal }}</span>
+            </div>
+          {% endfor %}
+
+          <div class="summary-row" style="margin-top:0.75rem;">
+            <span>Delivery</span>
+            <span class="val" style="color:#22c55e;">FREE</span>
+          </div>
+
+          <div class="summary-row total">
+            <span>Total</span>
+            <span class="val">₹{{ total }}</span>
+          </div>
+
+          <div class="payment-options">
+            <p style="font-size:0.8rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:#888;margin-bottom:0.75rem;">Payment Method</p>
+
+            <form method="post" action="{% url 'place_order' %}" id="checkout-form">
+              {% csrf_token %}
+              <div class="radio-group">
+                <div class="radio-option">
+                  <input type="radio" name="payment_method" id="cod" value="COD" checked />
+                  <label for="cod" class="pay-opt">
+                    <span class="pay-icon">💵</span>
+                    <span>
+                      <span class="pay-label">Cash on Delivery</span>
+                      <span class="pay-desc">Pay when your order arrives</span>
+                    </span>
+                  </label>
+                </div>
+                <div class="radio-option">
+                  <input type="radio" name="payment_method" id="online" value="ONLINE" />
+                  <label for="online" class="pay-opt">
+                    <span class="pay-icon">💳</span>
+                    <span>
+                      <span class="pay-label">Online Payment</span>
+                      <span class="pay-desc">UPI / Card / Net Banking (simulated)</span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" class="checkout-btn">
+                Place Order — ₹{{ total }}
+              </button>
+            </form>
+          </div>
+
+          <p style="font-size:0.72rem;color:#aaa;text-align:center;margin-top:0.5rem;">
+            🔒 Secure checkout. All data is safe.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">🛒</div>
+      <h3>Your cart is empty</h3>
+      <p>Browse our menu and add some delicious items to get started.</p>
+      <a href="{% url 'menu' %}" class="btn btn-primary">Browse Menu</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function changeQty(btn, delta) {
+    const form = btn.closest('form');
+    const input = form.querySelector('input[type=number]');
+    let val = parseInt(input.value) + delta;
+    if (val < 0) val = 0;
+    if (val > 99) val = 99;
+    input.value = val;
+  }
+</script>
+{% endblock %}

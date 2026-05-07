@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}CraveWorld{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── DESIGN TOKENS ────────────────────────────── */
+    :root {
+      --bg:        #0d0d0d;
+      --surface:   #161616;
+      --surface2:  #1e1e1e;
+      --border:    #2a2a2a;
+      --accent:    #f5a623;
+      --accent2:   #e8523a;
+      --text:      #f0ede8;
+      --text-muted:#8a8070;
+      --success:   #4caf80;
+      --danger:    #e8523a;
+      --radius:    12px;
+      --font-head: 'Playfair Display', Georgia, serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+
+    /* ── RESET ────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAVBAR ───────────────────────────────────── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,13,13,0.92);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px;
+    }
+    .nav-brand {
+      font-family: var(--font-head);
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-brand span { -webkit-text-fill-color: var(--text); opacity: 0.5; font-weight: 300; }
+    .nav-links { display: flex; gap: 0.25rem; align-items: center; }
+    .nav-links a {
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    .nav-cart {
+      position: relative;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.45rem 1.1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 500;
+      color: var(--text) !important;
+      transition: border-color 0.2s;
+    }
+    .nav-cart:hover { border-color: var(--accent); }
+    .cart-badge {
+      position: absolute; top: -6px; right: -6px;
+      background: var(--accent2);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      min-width: 18px; height: 18px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--bg);
+    }
+    .btn-logout {
+      padding: 0.45rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      transition: color 0.2s, background 0.2s;
+    }
+    .btn-logout:hover { color: var(--danger); background: rgba(232,82,58,0.1); }
+
+    /* ── MESSAGES ─────────────────────────────────── */
+    .messages-wrap {
+      max-width: 900px; margin: 1rem auto 0; padding: 0 1.5rem;
+    }
+    .message {
+      padding: 0.8rem 1.2rem;
+      border-radius: var(--radius);
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex; align-items: center; gap: 0.5rem;
+      animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .message.success { background: rgba(76,175,128,0.15); border: 1px solid rgba(76,175,128,0.3); color: #4caf80; }
+    .message.error   { background: rgba(232,82,58,0.15);  border: 1px solid rgba(232,82,58,0.3);  color: #e8523a; }
+    .message.warning { background: rgba(245,166,35,0.15); border: 1px solid rgba(245,166,35,0.3); color: var(--accent); }
+    .message.info    { background: rgba(100,160,230,0.15);border: 1px solid rgba(100,160,230,0.3);color: #64a0e6; }
+
+    /* ── PAGE WRAPPER ─────────────────────────────── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+    .page-title {
+      font-family: var(--font-head);
+      font-size: 2.4rem;
+      font-weight: 900;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.5px;
+    }
+    .page-subtitle { color: var(--text-muted); margin-bottom: 2.5rem; }
+
+    /* ── BUTTONS ──────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.65rem 1.4rem;
+      border-radius: 8px;
+      font-family: var(--font-body);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #e8941a);
+      color: #0d0d0d;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(245,166,35,0.35); }
+    .btn-danger  { background: rgba(232,82,58,0.15); color: var(--accent2); border: 1px solid rgba(232,82,58,0.3); }
+    .btn-danger:hover  { background: rgba(232,82,58,0.25); }
+    .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-ghost:hover   { border-color: var(--accent); }
+    .btn-success { background: rgba(76,175,128,0.15); color: var(--success); border: 1px solid rgba(76,175,128,0.3); }
+    .btn-success:hover { background: rgba(76,175,128,0.25); }
+    .btn-sm { padding: 0.4rem 0.9rem; font-size: 0.8rem; }
+
+    /* ── FORM INPUTS ──────────────────────────────── */
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(245,166,35,0.12);
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+    .form-group { margin-bottom: 1.25rem; }
+
+    /* ── EMPTY STATE ──────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 5rem 2rem;
+      color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state h3 { font-family: var(--font-head); font-size: 1.5rem; color: var(--text); margin-bottom: 0.5rem; }
+    .empty-state p { margin-bottom: 1.5rem; }
+
+    /* ── BADGE ────────────────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .badge-pending  { background: rgba(245,166,35,0.15); color: var(--accent); }
+    .badge-paid     { background: rgba(76,175,128,0.15); color: var(--success); }
+    .badge-preparing{ background: rgba(100,160,230,0.15);color: #64a0e6; }
+    .badge-delivered{ background: rgba(76,175,128,0.2);  color: var(--success); }
+
+    /* ── DIVIDER ──────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+    /* ── SCROLLBAR ────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── QUANTITY INPUT ───────────────────────────── */
+    .qty-control { display: flex; align-items: center; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; width: fit-content; }
+    .qty-btn {
+      background: var(--surface2); border: none; color: var(--text);
+      width: 34px; height: 34px; cursor: pointer; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .qty-btn:hover { background: var(--border); }
+    .qty-input {
+      width: 42px; text-align: center;
+      background: transparent; border: none; border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+      color: var(--text); font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
+      height: 34px; outline: none;
+    }
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    @media (max-width: 640px) {
+      .navbar { padding: 0 1rem; }
+      .page { padding: 1.5rem 1rem 3rem; }
+      .page-title { font-size: 1.8rem; }
+      .nav-links a { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="navbar">
+  <span class="nav-brand">Crave<span>World</span></span>
+  <div class="nav-links">
+    <a href="{% url 'menu' %}" {% if request.resolver_match.url_name == 'menu' %}class="active"{% endif %}>Menu</a>
+    <a href="{% url 'order_list' %}" {% if request.resolver_match.url_name == 'order_list' %}class="active"{% endif %}>Orders</a>
+    <a href="{% url 'cart' %}" class="nav-cart {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+      🛒 Cart
+      {% if cart_count > 0 %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+    </a>
+    <form method="post" action="{% url 'logout' %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn-logout">Sign out</button>
+    </form>
+  </div>
+</nav>
+{% endif %}
+
+{% if messages %}
+<div class="messages-wrap">
+  {% for message in messages %}
+    <div class="message {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+<script>
+  // Auto-dismiss messages after 4s
+  setTimeout(() => {
+    document.querySelectorAll('.message').forEach(m => {
+      m.style.transition = 'opacity 0.4s';
+      m.style.opacity = '0';
+      setTimeout(() => m.remove(), 400);
+    });
+  }, 4000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

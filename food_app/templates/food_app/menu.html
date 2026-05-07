@@ -1,0 +1,273 @@
+{% extends 'food_app/base.html' %}
+{% block title %}Menu — CraveWorld{% endblock %}
+
+{% block extra_head %}
+<style>
+  body, .page, .food-card, .food-card-img, .category-section {
+    background: #ffffff !important;
+  }
+  .food-card {
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+    background: #ffffff !important;
+  }
+  .food-card-img { background: #ffffff !important; }
+  .food-card-body { background: #ffffff !important; }
+  .food-name { color: #111827 !important; }
+  .food-desc { color: #6b7280 !important; }
+
+  .menu-hero {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    border: none;
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-hero::before {
+    content: '🍽️';
+    position: absolute; right: 2rem; top: 50%; transform: translateY(-50%);
+    font-size: 5rem; opacity: 0.25;
+  }
+  .menu-hero h1 {
+    font-family: var(--font-head);
+    font-size: 2.4rem;
+    margin-bottom: 0.25rem;
+    color: #ffffff !important;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .menu-hero p { color: #fff3e0 !important; font-size: 1rem; }
+
+  .category-section { margin-bottom: 3rem; }
+
+  .category-heading {
+    font-family: var(--font-head);
+    font-size: 1.4rem;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    display: flex; align-items: center; gap: 0.6rem;
+    border-left: 4px solid;
+  }
+  .category-heading.cat-starters {
+    background: linear-gradient(135deg, #fed7aa, #fb923c);
+    border-left-color: #ea580c;
+  }
+  .category-heading.cat-mains {
+    background: linear-gradient(135deg, #fef08a, #fbbf24);
+    border-left-color: #d97706;
+  }
+  .category-heading.cat-desserts {
+    background: linear-gradient(135deg, #e9d5ff, #c084fc);
+    border-left-color: #9333ea;
+  }
+  .category-heading.cat-drinks {
+    background: linear-gradient(135deg, #bbf7d0, #4ade80);
+    border-left-color: #16a34a;
+  }
+
+  .cat-icon  { font-size: 1.4rem; }
+  .cat-title { color: #111827 !important; font-weight: 700; }
+  .cat-count { color: #374151 !important; font-family: var(--font-body); font-size: 0.8rem; font-weight: 500; margin-left: auto; }
+
+  .food-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+
+  .food-card {
+    border-radius: 16px; overflow: hidden; position: relative;
+    transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    animation: cardIn 0.35s ease both;
+  }
+  .food-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.15) !important; }
+  @keyframes cardIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+  .food-card.cat-starters:hover  { border-color: rgba(239,68,68,0.5) !important; }
+  .food-card.cat-mains:hover     { border-color: rgba(245,158,11,0.5) !important; }
+  .food-card.cat-desserts:hover  { border-color: rgba(168,85,247,0.5) !important; }
+  .food-card.cat-drinks:hover    { border-color: rgba(34,197,94,0.5) !important; }
+
+  .food-card::after {
+    content:''; position:absolute; top:10px; right:10px;
+    width:8px; height:8px; border-radius:50%; opacity:0.8;
+    z-index: 2;
+  }
+  .food-card.cat-starters::after { background: #ef4444; }
+  .food-card.cat-mains::after    { background: #f59e0b; }
+  .food-card.cat-desserts::after { background: #a855f7; }
+  .food-card.cat-drinks::after   { background: #22c55e; }
+
+  .food-card-img {
+    width:100%; height:180px;
+    display:flex; align-items:center; justify-content:center;
+    border-bottom: 1px solid #e5e7eb;
+    position:relative; overflow:hidden;
+    background: #f9fafb !important;
+  }
+  .food-card-img img {
+    width:100%; height:100%; object-fit:cover;
+    position:absolute; inset:0;
+    transition: transform 0.4s ease;
+  }
+  .food-card:hover .food-card-img img { transform: scale(1.06); }
+
+  .food-emoji {
+    font-size: 5rem; line-height:1;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+  }
+  .food-card:hover .food-emoji { transform: scale(1.12) rotate(-4deg); }
+
+  .food-card-body { padding: 1.25rem; }
+  .food-name { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; line-height: 1.3; }
+  .food-desc { font-size: 0.82rem; line-height: 1.5; margin-bottom: 1rem;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+  .food-footer { display: flex; align-items: center; justify-content: space-between; }
+  .food-price { font-size: 1.2rem; font-weight: 700; }
+  .food-price span { font-size: 0.75rem; font-weight: 400; color: #6b7280; }
+
+  .food-card.cat-starters .food-price { color: #ef4444; }
+  .food-card.cat-mains    .food-price { color: #d97706; }
+  .food-card.cat-desserts .food-price { color: #9333ea; }
+  .food-card.cat-drinks   .food-price { color: #16a34a; }
+
+  .btn-add {
+    border: none; padding: 0.5rem 1.1rem; border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  }
+  .food-card.cat-starters .btn-add { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+  .food-card.cat-mains    .btn-add { background: linear-gradient(135deg, #f59e0b, #d97706); color: #0d0d0d; }
+  .food-card.cat-desserts .btn-add { background: linear-gradient(135deg, #a855f7, #9333ea); color: #fff; }
+  .food-card.cat-drinks   .btn-add { background: linear-gradient(135deg, #22c55e, #16a34a); color: #0d0d0d; }
+  .btn-add:hover { transform: scale(1.06); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page">
+  <div class="menu-hero">
+    <h1>Today's Menu</h1>
+    <p>Fresh, delicious food prepared just for you, {{ request.user.username }} ✨</p>
+  </div>
+
+  {% if categories %}
+    {% for category, items in categories.items %}
+      <div class="category-section">
+        <h2 class="category-heading
+          {% if category == 'Starters' %}cat-starters
+          {% elif category == 'Main Course' %}cat-mains
+          {% elif category == 'Desserts' %}cat-desserts
+          {% elif category == 'Drinks' %}cat-drinks
+          {% endif %}">
+          <span class="cat-icon">
+            {% if category == 'Starters' %}🔥
+            {% elif category == 'Main Course' %}🍛
+            {% elif category == 'Desserts' %}🍰
+            {% elif category == 'Drinks' %}🥤
+            {% else %}🍴{% endif %}
+          </span>
+          <span class="cat-title">{{ category }}</span>
+          <span class="cat-count">({{ items|length }} item{{ items|length|pluralize }})</span>
+        </h2>
+
+        <div class="food-grid">
+          {% for item in items %}
+            <div class="food-card
+              {% if category == 'Starters' %}cat-starters
+              {% elif category == 'Main Course' %}cat-mains
+              {% elif category == 'Desserts' %}cat-desserts
+              {% elif category == 'Drinks' %}cat-drinks
+              {% endif %}"
+              data-index="{{ forloop.counter0 }}">
+
+              <div class="food-card-img">
+                {% if item.image_url %}
+                  <img src="{{ item.image_url }}" alt="{{ item.name }}">
+                {% elif item.name == 'Paneer Tikka' %}
+                  <img src="https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=400&q=80" alt="Paneer Tikka">
+                {% elif item.name == 'Veg Spring Rolls' %}
+                  <img src="https://images.unsplash.com/photo-1607330289024-1535c6b4e1c1?w=400&q=80" alt="Veg Spring Rolls">
+                {% elif item.name == 'Chicken Lollipop' %}
+                  <img src="https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400&q=80" alt="Chicken Lollipop">
+                {% elif item.name == 'Hara Bhara Kabab' %}
+                  <img src="https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400&q=80" alt="Hara Bhara Kabab">
+                {% elif item.name == 'Butter Chicken' %}
+                  <img src="https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400&q=80" alt="Butter Chicken">
+                {% elif item.name == 'Dal Makhani' %}
+                  <img src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&q=80" alt="Dal Makhani">
+                {% elif item.name == 'Palak Paneer' %}
+                  <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=80" alt="Palak Paneer">
+                {% elif item.name == 'Chicken Biryani' %}
+                  <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80" alt="Chicken Biryani">
+                {% elif item.name == 'Veg Fried Rice' %}
+                  <img src="https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&q=80" alt="Veg Fried Rice">
+                {% elif item.name == 'Mutton Rogan Josh' %}
+                  <img src="https://images.unsplash.com/photo-1545247181-516773cae754?w=400&q=80" alt="Mutton Rogan Josh">
+                {% elif item.name == 'Masala Dosa' %}
+                  <img src="https://images.unsplash.com/photo-1630383249896-424e482df921?w=400&q=80" alt="Masala Dosa">
+                {% elif item.name == 'Gulab Jamun' %}
+                  <img src="https://images.unsplash.com/photo-1666365350010-05bcb1ffa313?w=400&q=80" alt="Gulab Jamun">
+                {% elif item.name == 'Chocolate Lava Cake' %}
+                  <img src="https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&q=80" alt="Chocolate Lava Cake">
+                {% elif item.name == 'Mango Kulfi' %}
+                  <img src="https://images.unsplash.com/photo-1615832494873-b0c52d519696?w=400&q=80" alt="Mango Kulfi">
+                {% elif item.name == 'Rasgulla' %}
+                  <img src="https://images.unsplash.com/photo-1674479862960-b4180bcc2dce?w=400&q=80" alt="Rasgulla">
+                {% elif item.name == 'Mango Lassi' %}
+                  <img src="https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=400&q=80" alt="Mango Lassi">
+                {% elif item.name == 'Masala Chai' %}
+                  <img src="https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&q=80" alt="Masala Chai">
+                {% elif item.name == 'Fresh Lime Soda' %}
+                  <img src="https://images.unsplash.com/photo-1560508180-03f285f67ded?w=400&q=80" alt="Fresh Lime Soda">
+                {% elif item.name == 'Cold Coffee' %}
+                  <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80" alt="Cold Coffee">
+                {% else %}
+                  <span class="food-emoji">🍽️</span>
+                {% endif %}
+              </div>
+
+              <div class="food-card-body">
+                <h3 class="food-name">{{ item.name }}</h3>
+                <p class="food-desc">{{ item.description }}</p>
+                <div class="food-footer">
+                  <div class="food-price">₹{{ item.price }}<span>/item</span></div>
+                  <form method="post" action="{% url 'add_to_cart' item.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-add">+ Add to Cart</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">🍽️</div>
+      <h3>Menu is empty</h3>
+      <p>No food items are available right now. Check back soon!</p>
+      <a href="/admin/food_app/fooditem/add/" class="btn btn-primary">Add Items via Admin</a>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  document.querySelectorAll('[data-index]').forEach(el => {
+    el.style.animationDelay = el.dataset.index + '00ms';
+  });
+
+  /* Fix any broken images — replace with colorful food emoji fallback */
+  document.querySelectorAll('.food-card-img img').forEach(img => {
+    img.addEventListener('error', function() {
+      this.style.display = 'none';
+      const emoji = document.createElement('span');
+      emoji.className = 'food-emoji';
+      emoji.textContent = '🍽️';
+      this.parentNode.appendChild(emoji);
+    });
+  });
+</script>
+
+{% endblock %}
