@@ -1,63 +1,60 @@
 {% extends 'food_app/base.html' %}
-{% block title %}Create Account — FeastFlow{% endblock %}
+{% block title %}Create Account — CraveWorld{% endblock %}
 
 {% block extra_head %}
 <style>
-  body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  body {
+    background: #ffffff !important;
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+  }
   .auth-wrap { width: 100%; max-width: 440px; padding: 1rem; }
+
   .auth-logo { text-align: center; margin-bottom: 2.5rem; }
   .auth-logo h1 {
     font-family: var(--font-head); font-size: 3rem; font-weight: 900;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1;
+    color: #f5a623; line-height: 1;
   }
-  .auth-logo p { color: var(--text-muted); margin-top: 0.5rem; font-size: 0.9rem; }
+  .auth-logo p { color: #888888; margin-top: 0.5rem; font-size: 0.9rem; }
+
   .auth-card {
-    background: var(--surface); border: 1px solid var(--border);
+    background: #ffffff;
+    border: 1px solid #ffe0b2;
     border-radius: 20px; padding: 2.5rem;
-    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    box-shadow: 0 8px 40px rgba(245,166,35,0.12);
     animation: floatIn 0.4s ease;
   }
   @keyframes floatIn {
     from { opacity: 0; transform: translateY(20px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .auth-card h2 { font-family: var(--font-head); font-size: 1.6rem; margin-bottom: 0.25rem; }
-  .auth-card .sub { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; }
-  .btn-submit { width: 100%; padding: 0.9rem; font-size: 1rem; border-radius: 10px; justify-content: center; margin-top: 0.5rem; }
-  .auth-footer { text-align: center; margin-top: 1.5rem; color: var(--text-muted); font-size: 0.875rem; }
-  .auth-footer a { color: var(--accent); font-weight: 600; }
-  .auth-footer a:hover { text-decoration: underline; }
-  .decorative-dots {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background-image: radial-gradient(circle, rgba(245,166,35,0.06) 1px, transparent 1px);
-    background-size: 32px 32px; pointer-events: none; z-index: -1;
+  .auth-card h2 { font-family: var(--font-head); font-size: 1.6rem; margin-bottom: 0.25rem; color: #111111; }
+  .auth-card .sub { color: #888888; font-size: 0.875rem; margin-bottom: 2rem; }
+
+  .btn-submit {
+    width: 100%; padding: 0.9rem; font-size: 1rem;
+    border-radius: 10px; justify-content: center; margin-top: 0.5rem;
+    background: #f5a623; color: #ffffff; border: none;
+    font-weight: 700; cursor: pointer; font-family: var(--font-body);
+    transition: all 0.2s;
   }
-  .password-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem; }
+  .btn-submit:hover { background: #e8941a; box-shadow: 0 4px 15px rgba(245,166,35,0.35); }
+
+  .auth-footer { text-align: center; margin-top: 1.5rem; color: #888888; font-size: 0.875rem; }
+  .auth-footer a { color: #f5a623; font-weight: 600; }
+  .auth-footer a:hover { text-decoration: underline; }
+  .password-hint { font-size: 0.75rem; color: #aaaaaa; margin-top: 0.3rem; }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="decorative-dots"></div>
-
-{% if messages %}
-<div style="position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:999;min-width:320px;">
-  {% for message in messages %}
-    <div class="message {{ message.tags }}">{{ message }}</div>
-  {% endfor %}
-</div>
-{% endif %}
-
 <div class="auth-wrap">
   <div class="auth-logo">
-    <h1>FeastFlow</h1>
+    <h1>CraveWorld</h1>
     <p>Join thousands of food lovers 🍕</p>
   </div>
-
   <div class="auth-card">
     <h2>Create account</h2>
     <p class="sub">Fill in the details below to get started</p>
-
     <form method="post">
       {% csrf_token %}
       <div class="form-group">
@@ -65,7 +62,7 @@
         <input type="text" name="username" class="form-input" placeholder="Choose a username" required autofocus />
       </div>
       <div class="form-group">
-        <label class="form-label">Email <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+        <label class="form-label">Email <span style="color:#aaaaaa;font-weight:400;">(optional)</span></label>
         <input type="email" name="email" class="form-input" placeholder="you@example.com" />
       </div>
       <div class="form-group">
@@ -77,10 +74,9 @@
         <label class="form-label">Confirm Password</label>
         <input type="password" name="password2" class="form-input" placeholder="Repeat your password" required />
       </div>
-      <button type="submit" class="btn btn-primary btn-submit">Create Account →</button>
+      <button type="submit" class="btn-submit">Create Account →</button>
     </form>
   </div>
-
   <div class="auth-footer">
     Already have an account? <a href="{% url 'login' %}">Sign in</a>
   </div>

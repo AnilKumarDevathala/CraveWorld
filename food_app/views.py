@@ -4,9 +4,97 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db import IntegrityError
+from django.core.mail import send_mail
+from django.conf import settings
 from decimal import Decimal
+import webbrowser
 
 from .models import FoodItem, Cart, Order
+
+
+# ─────────────────────────────────────────────
+#  EMAIL HELPER FUNCTIONS
+# ─────────────────────────────────────────────
+
+def send_registration_email(user):
+    subject = "🍛 Welcome to FeastFlow!"
+    message = f"""Hi {user.username},
+
+Welcome to FeastFlow! 🎉
+
+Your account has been created successfully. You can now browse our menu,
+add items to your cart, and place orders anytime.
+
+Get started: http://127.0.0.1:8000/menu/
+
+Enjoy your meal!
+— The FeastFlow Team
+"""
+    try:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
+    except Exception:
+        pass
+
+
+def send_order_confirmation_email(user, order, items_summary, total, payment_method):
+    payment_label = "Cash on Delivery" if payment_method == "COD" else "Online Payment"
+    status_note = (
+        "Your payment has been received. ✅"
+        if payment_method == "ONLINE"
+        else "Please keep cash ready at the time of delivery."
+    )
+    subject = f"🧾 FeastFlow Order Confirmed — Order #{order.id}"
+    message = f"""Hi {user.username},
+
+Your order has been placed successfully! 🎉
+
+━━━━━━━━━━━━━━━━━━━━━━━━
+  ORDER SUMMARY  (Order #{order.id})
+━━━━━━━━━━━━━━━━━━━━━━━━
+{items_summary}
+━━━━━━━━━━━━━━━━━━━━━━━━
+  Total:       ₹{total}
+  Payment:     {payment_label}
+  Status:      {order.status}
+━━━━━━━━━━━━━━━━━━━━━━━━
+
+{status_note}
+
+Track your order: http://127.0.0.1:8000/orders/
+
+— The FeastFlow Team
+"""
+    try:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
+    except Exception:
+        pass
+
+
+def send_order_status_email(user, order):
+    status_messages = {
+        "Pending":   "Your order is pending confirmation.",
+        "Paid":      "Your payment has been confirmed. ✅",
+        "Preparing": "Our kitchen is now preparing your order. 🍳",
+        "Delivered": "Your order has been delivered. Enjoy your meal! 🎉",
+    }
+    note = status_messages.get(order.status, f"Your order status is now: {order.status}")
+    subject = f"📦 FeastFlow Order #{order.id} — Status Update: {order.status}"
+    message = f"""Hi {user.username},
+
+Your Order #{order.id} has been updated!
+
+  New Status: {order.status}
+
+{note}
+
+View your orders: http://127.0.0.1:8000/orders/
+
+— The FeastFlow Team
+"""
+    try:
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=True)
+    except Exception:
+        pass
 
 
 # ─────────────────────────────────────────────
@@ -14,13 +102,12 @@ from .models import FoodItem, Cart, Order
 # ─────────────────────────────────────────────
 
 def register(request):
-    """Create a new user account."""
     if request.user.is_authenticated:
         return redirect('menu')
 
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip()
+        username  = request.POST.get('username', '').strip()
+        email     = request.POST.get('email', '').strip()
         password1 = request.POST.get('password1', '')
         password2 = request.POST.get('password2', '')
 
@@ -36,13 +123,14 @@ def register(request):
             user = User.objects.create_user(username=username, email=email, password=password1)
             login(request, user)
             messages.success(request, f'Welcome, {username}! Your account has been created.')
+            if email:
+                send_registration_email(user)
             return redirect('menu')
 
     return render(request, 'food_app/register.html')
 
 
 def login_view(request):
-    """Log in an existing user."""
     if request.user.is_authenticated:
         return redirect('menu')
 
@@ -63,7 +151,6 @@ def login_view(request):
 
 @login_required
 def logout_view(request):
-    """Log out the current user."""
     logout(request)
     messages.info(request, 'You have been logged out successfully.')
     return redirect('login')
@@ -75,21 +162,12 @@ def logout_view(request):
 
 @login_required
 def menu(request):
-    """Display all available food items grouped by category."""
     food_items = FoodItem.objects.filter(is_available=True)
-    cart_count = Cart.objects.filter(user=request.user).count()
-
-    # Group by category for template
     categories = {}
     for item in food_items:
         cat_label = item.get_category_display()
         categories.setdefault(cat_label, []).append(item)
-
-    context = {
-        'categories': categories,
-        'cart_count': cart_count,
-    }
-    return render(request, 'food_app/menu.html', context)
+    return render(request, 'food_app/menu.html', {'categories': categories})
 
 
 # ─────────────────────────────────────────────
@@ -98,12 +176,9 @@ def menu(request):
 
 @login_required
 def add_to_cart(request, food_id):
-    """Add a food item to the cart or increment quantity."""
     food = get_object_or_404(FoodItem, id=food_id, is_available=True)
     cart_item, created = Cart.objects.get_or_create(
-        user=request.user,
-        food=food,
-        defaults={'quantity': 1}
+        user=request.user, food=food, defaults={'quantity': 1}
     )
     if not created:
         cart_item.quantity += 1
@@ -111,30 +186,19 @@ def add_to_cart(request, food_id):
         messages.success(request, f'"{food.name}" quantity updated in your cart.')
     else:
         messages.success(request, f'"{food.name}" added to your cart!')
-
     return redirect('menu')
 
 
 @login_required
 def cart(request):
-    """Show all items in the user's cart with total price."""
     cart_items = Cart.objects.filter(user=request.user).select_related('food')
     total = sum(item.subtotal for item in cart_items)
-    cart_count = cart_items.count()
-
-    context = {
-        'cart_items': cart_items,
-        'total': total,
-        'cart_count': cart_count,
-    }
-    return render(request, 'food_app/cart.html', context)
+    return render(request, 'food_app/cart.html', {'cart_items': cart_items, 'total': total})
 
 
 @login_required
 def update_cart(request, cart_id):
-    """Update the quantity of a cart item."""
     cart_item = get_object_or_404(Cart, id=cart_id, user=request.user)
-
     if request.method == 'POST':
         try:
             quantity = int(request.POST.get('quantity', 1))
@@ -147,13 +211,11 @@ def update_cart(request, cart_id):
                 messages.success(request, 'Cart updated successfully.')
         except (ValueError, TypeError):
             messages.error(request, 'Invalid quantity entered.')
-
     return redirect('cart')
 
 
 @login_required
 def remove_from_cart(request, cart_id):
-    """Remove an item from the cart."""
     cart_item = get_object_or_404(Cart, id=cart_id, user=request.user)
     food_name = cart_item.food.name
     cart_item.delete()
@@ -167,7 +229,6 @@ def remove_from_cart(request, cart_id):
 
 @login_required
 def place_order(request):
-    """Convert all cart items into a placed order."""
     cart_items = Cart.objects.filter(user=request.user).select_related('food')
 
     if not cart_items.exists():
@@ -179,21 +240,15 @@ def place_order(request):
         if payment_method not in ['COD', 'ONLINE']:
             payment_method = 'COD'
 
-        # Calculate total
         total = sum(item.subtotal for item in cart_items)
-
-        # Build summary snapshot
         summary_lines = [
             f"{item.food.name} × {item.quantity} = ₹{item.subtotal}"
             for item in cart_items
         ]
         items_summary = '\n'.join(summary_lines)
-
-        # Determine status
         status = 'Paid' if payment_method == 'ONLINE' else 'Pending'
 
-        # Create order
-        Order.objects.create(
+        order = Order.objects.create(
             user=request.user,
             total_amount=total,
             payment_method=payment_method,
@@ -201,7 +256,6 @@ def place_order(request):
             items_summary=items_summary,
         )
 
-        # Clear cart
         cart_items.delete()
 
         if payment_method == 'ONLINE':
@@ -209,20 +263,16 @@ def place_order(request):
         else:
             messages.success(request, '✅ Order placed! Pay cash upon delivery.')
 
+        if request.user.email:
+            send_order_confirmation_email(request.user, order, items_summary, total, payment_method)
+
         return redirect('order_list')
 
-    # GET: show confirmation page (rendered inside cart.html with modal)
     return redirect('cart')
 
 
 @login_required
 def order_list(request):
-    """Show all past orders for the logged-in user."""
     orders = Order.objects.filter(user=request.user)
-    cart_count = Cart.objects.filter(user=request.user).count()
-
-    context = {
-        'orders': orders,
-        'cart_count': cart_count,
-    }
-    return render(request, 'food_app/orders.html', context)
+    delivered_count = orders.filter(status='Delivered').count()
+    return render(request, 'food_app/orders.html', {'orders': orders, 'delivered_count': delivered_count})

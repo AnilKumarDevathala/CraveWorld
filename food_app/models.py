@@ -1,5 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.mail import send_mail
 
 
 class FoodItem(models.Model):
@@ -71,3 +75,15 @@ class Order(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+@receiver(post_save, sender=Order)
+def notify_admin(sender, instance, created, **kwargs):
+    if created:
+        subject = f"🆕 New Order #{instance.id} by {instance.user.username}"
+        message = f"New order placed!\n\nOrder ID: #{instance.id}\nUser: {instance.user.username}\nTotal: ₹{instance.total_amount}\nPayment: {instance.get_payment_method_display()}\nItems: {instance.items_summary}"
+    else:
+        subject = f"🔄 Order #{instance.id} changed to {instance.status}"
+        message = f"Order updated!\n\nOrder ID: #{instance.id}\nUser: {instance.user.username}\nTotal: ₹{instance.total_amount}\nNew Status: {instance.status}\nItems: {instance.items_summary}"
+
+    send_mail(subject, message, settings.EMAIL_HOST_USER, [settings.EMAIL_HOST_USER], fail_silently=True)
