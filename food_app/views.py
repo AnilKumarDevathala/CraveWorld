@@ -17,10 +17,10 @@ from .models import FoodItem, Cart, Order
 # ─────────────────────────────────────────────
 
 def send_registration_email(user):
-    subject = "🍛 Welcome to FeastFlow!"
+    subject = "🍛 Welcome to CraveWorld!"
     message = f"""Hi {user.username},
 
-Welcome to FeastFlow! 🎉
+Welcome to CraveWorld! 🎉
 
 Your account has been created successfully. You can now browse our menu,
 add items to your cart, and place orders anytime.
@@ -43,7 +43,7 @@ def send_order_confirmation_email(user, order, items_summary, total, payment_met
         if payment_method == "ONLINE"
         else "Please keep cash ready at the time of delivery."
     )
-    subject = f"🧾 FeastFlow Order Confirmed — Order #{order.id}"
+    subject = f"🧾 CraveWorld Order Confirmed — Order #{order.id}"
     message = f"""Hi {user.username},
 
 Your order has been placed successfully! 🎉
@@ -78,7 +78,7 @@ def send_order_status_email(user, order):
         "Delivered": "Your order has been delivered. Enjoy your meal! 🎉",
     }
     note = status_messages.get(order.status, f"Your order status is now: {order.status}")
-    subject = f"📦 FeastFlow Order #{order.id} — Status Update: {order.status}"
+    subject = f"📦 CraveWorld Order #{order.id} — Status Update: {order.status}"
     message = f"""Hi {user.username},
 
 Your Order #{order.id} has been updated!
